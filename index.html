@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MiniChat 2.1 | Modern Chat App</title>
+  <title>MiniChat 3.0 | Advanced Chat App</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,17 +13,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Lucide Icons (vanilla) -->
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root {
       --bg: #0b1220; /* page bg */
-      --card: rgba(18, 27, 45, 0.6);
+      --card: rgba(18, 27, 45, 0.7); /* increased opacity for more depth */
       --card-border: rgba(255, 255, 255, 0.08);
       --ring: #60a5fa; /* focus ring */
       --grad-1: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #06b6d4 100%);
-      --grad-2: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.15));
     }
 
     html, body { height: 100%; }
@@ -40,8 +39,8 @@
 
     .glass-card {
       background: var(--card);
-      backdrop-filter: blur(16px) saturate(120%);
-      -webkit-backdrop-filter: blur(16px) saturate(120%);
+      backdrop-filter: blur(20px) saturate(150%); /* Enhanced "waterdrop" blur */
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
       border: 1px solid var(--card-border);
       box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
     }
@@ -55,37 +54,41 @@
     .messages-container::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .35); border-radius: 8px; }
     .messages-container::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, .55); }
 
-    /* Inputs */
+    /* Inputs & Buttons */
     .input { background:#0f172a; border:1px solid rgba(148,163,184,.18); }
     .input:focus { outline: none; box-shadow: 0 0 0 3px rgba(96,165,250,.35); border-color: rgba(96,165,250,.6); }
-
-    /* Buttons */
-    .btn-primary { background-image: var(--grad-1); color:white; }
+    .btn { transition: all .2s ease; }
+    .btn:active { transform: translateY(0); filter: none; }
+    .btn-primary { background-image: var(--grad-1); color:white; box-shadow: 0 6px 18px rgba(37, 99, 235, .2); }
     .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
     .btn-secondary { background: #111827; color:#cbd5e1; border:1px solid rgba(148,163,184,.25); }
     .btn-secondary:hover { border-color: rgba(148,163,184,.45); }
-    .btn {
-      transition: all .2s ease; box-shadow: 0 6px 18px rgba(37, 99, 235, .18);
-    }
-    .btn:active { transform: translateY(0); filter: none; }
 
-    /* Message bubble animation */
-    .bubble { animation: bubbleIn 160ms ease-out; }
+    /* Animations */
+    .bubble { animation: bubbleIn 160ms ease-out; position:relative; }
     @keyframes bubbleIn { from { opacity:0; transform: translateY(6px) scale(.98);} to { opacity:1; transform: translateY(0) scale(1);} }
 
-    /* Typing indicator */
     .typing { display:inline-flex; align-items:center; gap:6px; }
     .typing-dot { width:6px; height:6px; border-radius: 999px; background:#94a3b8; opacity:.6; animation: pulse 1.2s infinite; }
     .typing-dot:nth-child(2) { animation-delay: .15s; }
     .typing-dot:nth-child(3) { animation-delay: .3s; }
     @keyframes pulse { 0%, 80%, 100% { transform: scale(.9); opacity:.4;} 40% { transform: scale(1); opacity: 1; } }
 
-    /* Header gradient line */
     .header-accent { height: 2px; background: var(--grad-1); opacity:.8; }
+
+    /* Delete button on message hover */
+    .message-wrapper .delete-msg-btn {
+        opacity: 0;
+        transition: opacity 150ms ease-in-out;
+    }
+    .message-wrapper:hover .delete-msg-btn {
+        opacity: 1;
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
+  <!-- Main App Container -->
   <div id="app-container" class="w-full max-w-2xl h-[92vh] max-h-[860px] glass-card rounded-2xl overflow-hidden flex flex-col">
 
     <!-- Header -->
@@ -94,128 +97,121 @@
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-xl bg-white/5 ring-1 ring-white/10">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-blue-400">
-              <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M2 7L12 12L22 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 12V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 7L12 12L22 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 12V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <div>
-            <h1 class="text-base font-semibold tracking-wide">MiniChat <span class="text-blue-300">2.1</span></h1>
-            <p class="text-[11px] text-slate-400 -mt-0.5">Elegant realtime rooms with Firebase</p>
+            <h1 class="text-base font-semibold tracking-wide">MiniChat <span class="text-blue-300">3.0</span></h1>
+            <p class="text-[11px] text-slate-400 -mt-0.5">Powerful rooms with Firestore</p>
           </div>
         </div>
 
         <div class="flex items-center gap-3">
           <div id="user-info" class="hidden md:flex flex-col items-end">
-            <div class="flex items-center gap-2 text-sm text-slate-300">
-              <span id="username-display" class="max-w-[160px] truncate font-medium"></span>
-              <span class="inline-flex items-center gap-1 text-emerald-300/90 text-[11px]">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
-              </span>
-            </div>
+            <span id="username-display" class="max-w-[160px] truncate font-medium text-sm text-slate-200"></span>
             <div id="room-mini" class="text-[11px] text-slate-400"></div>
           </div>
-
-          <button id="leave-room-button" title="Leave room" class="ml-1 hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-lg btn-secondary">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
-            <span class="text-sm">Leave</span>
+          <button id="leave-room-button" title="Leave room" class="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-lg btn btn-secondary">
+            <i data-lucide="log-out" class="w-4 h-4"></i><span class="text-sm">Leave</span>
           </button>
         </div>
       </div>
       <div class="header-accent"></div>
     </header>
 
-    <!-- Main -->
-    <main class="flex-1 flex flex-col p-5">
+    <!-- App Body -->
+    <main class="flex-1 flex flex-col p-5 overflow-y-auto">
 
       <!-- Login Screen -->
       <section id="login-screen" class="screen h-full grid place-items-center text-center">
-        <div class="max-w-sm">
-          <div class="mx-auto mb-5 w-16 h-16 rounded-2xl bg-white/5 ring-1 ring-white/10 grid place-items-center">
-            <i data-lucide="messages-square" class="w-7 h-7 text-blue-300"></i>
-          </div>
-          <h2 class="text-3xl font-bold">Welcome to MiniChat</h2>
-          <p class="text-slate-400 mt-2">Connect instantly and securely. Sign in to join or create chat rooms.</p>
-
-          <div class="mt-7 space-y-3">
-            <button id="google-login-button" class="btn btn-primary w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3">
-              <i data-lucide="log-in" class="w-5 h-5"></i>
-              <span class="font-semibold">Sign in with Google</span>
-            </button>
-            <button id="continue-guest-button" class="btn btn-secondary w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3">
-              <i data-lucide="user-round-plus" class="w-5 h-5"></i>
-              <span class="font-semibold">Continue as Guest</span>
-            </button>
-          </div>
-        </div>
+        <!-- ... content unchanged ... -->
+         <div class="max-w-sm">
+           <div class="mx-auto mb-5 w-16 h-16 rounded-2xl bg-white/5 ring-1 ring-white/10 grid place-items-center">
+             <i data-lucide="messages-square" class="w-7 h-7 text-blue-300"></i>
+           </div>
+           <h2 class="text-3xl font-bold">Welcome to MiniChat</h2>
+           <p class="text-slate-400 mt-2">Connect instantly and securely. Sign in to join or create chat rooms.</p>
+           <div class="mt-7 space-y-3">
+             <button id="google-login-button" class="btn btn-primary w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3">
+               <i data-lucide="log-in" class="w-5 h-5"></i><span class="font-semibold">Sign in with Google</span>
+             </button>
+             <button id="continue-guest-button" class="btn btn-secondary w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3">
+               <i data-lucide="user-round-plus" class="w-5 h-5"></i><span class="font-semibold">Continue as Guest</span>
+             </button>
+           </div>
+         </div>
       </section>
 
       <!-- Username Screen -->
       <section id="username-prompt" class="screen hidden h-full grid place-items-center">
+        <!-- ... content unchanged ... -->
         <div class="w-full max-w-sm">
-          <h2 class="text-2xl font-semibold">Choose a Username</h2>
-          <div class="mt-4 flex gap-2">
-            <div class="relative flex-1">
-              <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-              <input id="guest-username" type="text" placeholder="Enter your username..." class="input w-full rounded-xl pl-9 pr-3 py-3" />
-            </div>
-            <button id="submit-username-button" class="btn btn-primary rounded-xl px-4">
-              <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            </button>
-          </div>
-        </div>
+           <h2 class="text-2xl font-semibold">Choose a Username</h2>
+           <div class="mt-4 flex gap-2">
+             <div class="relative flex-1">
+               <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+               <input id="guest-username" type="text" placeholder="Enter your username..." class="input w-full rounded-xl pl-9 pr-3 py-3" />
+             </div>
+             <button id="submit-username-button" class="btn btn-primary rounded-xl px-4">
+               <i data-lucide="arrow-right" class="w-5 h-5"></i>
+             </button>
+           </div>
+         </div>
       </section>
 
       <!-- Room Screen -->
       <section id="room-creation" class="screen hidden h-full grid place-items-center">
-        <div class="w-full max-w-lg">
-          <h2 class="text-2xl font-semibold">Join or Create a Room</h2>
-          <div class="mt-4 grid gap-3">
-            <div class="relative">
-              <i data-lucide="hash" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-              <input id="room-code-input" type="text" placeholder="Enter room code to join" class="input w-full rounded-xl pl-9 pr-3 py-3 tracking-widest uppercase" />
-            </div>
-            <div class="flex gap-3">
-              <button id="join-room-button" class="btn btn-primary flex-1 rounded-xl px-4 py-3 inline-flex items-center justify-center gap-2">
-                <i data-lucide="log-in" class="w-5 h-5"></i>
-                <span class="font-semibold">Join Room</span>
-              </button>
-              <button id="create-room-button" class="btn btn-secondary flex-1 rounded-xl px-4 py-3 inline-flex items-center justify-center gap-2">
-                <i data-lucide="plus" class="w-5 h-5"></i>
-                <span class="font-semibold">Create New</span>
-              </button>
-            </div>
-          </div>
-        </div>
+         <!-- ... content unchanged ... -->
+         <div class="w-full max-w-lg">
+           <h2 class="text-2xl font-semibold">Join or Create a Room</h2>
+           <div class="mt-4 grid gap-3">
+             <div class="relative">
+               <i data-lucide="hash" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+               <input id="room-code-input" type="text" placeholder="Enter room code to join" class="input w-full rounded-xl pl-9 pr-3 py-3 tracking-widest uppercase" />
+             </div>
+             <div class="flex gap-3">
+               <button id="join-room-button" class="btn btn-primary flex-1 rounded-xl px-4 py-3 inline-flex items-center justify-center gap-2">
+                 <i data-lucide="log-in" class="w-5 h-5"></i><span class="font-semibold">Join Room</span>
+               </button>
+               <button id="create-room-button" class="btn btn-secondary flex-1 rounded-xl px-4 py-3 inline-flex items-center justify-center gap-2">
+                 <i data-lucide="plus" class="w-5 h-5"></i><span class="font-semibold">Create New</span>
+               </button>
+             </div>
+           </div>
+         </div>
       </section>
 
       <!-- Chat Screen -->
-      <section id="chat-screen" class="screen hidden flex flex-col min-h-0">
+      <section id="chat-screen" class="screen hidden flex flex-col h-full">
+        <!-- Chat header with user presence -->
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <h2 id="room-code-heading" class="text-sm text-slate-300"></h2>
-            <button id="copy-room-code" title="Copy room code" class="p-2 rounded-lg hover:bg-white/5">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-            </button>
+            <button id="copy-room-code" title="Copy room code" class="p-2 rounded-lg hover:bg-white/5"><i data-lucide="copy" class="w-4 h-4"></i></button>
           </div>
-          <button id="leave-room-button-sm" title="Leave room" class="md:hidden inline-flex items-center gap-1 px-3 py-2 rounded-lg btn-secondary">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
-            <span class="text-sm">Leave</span>
-          </button>
+          <div class="flex items-center gap-2 text-sm text-slate-300">
+            <div id="user-presence" class="flex items-center gap-1.5"></div>
+            <i data-lucide="users" class="w-4 h-4"></i>
+          </div>
         </div>
 
-        <div id="messages" class="messages-container flex-1 overflow-y-auto space-y-3 pr-1">
+        <!-- Messages container (takes up remaining space) -->
+        <div id="messages" class="messages-container flex-1 overflow-y-auto space-y-4 pr-2">
           <!-- messages injected here -->
         </div>
 
+        <!-- Typing indicator -->
         <div id="typing-indicator" class="h-6 mt-2 text-xs text-slate-400"></div>
 
+        <!-- Fixed message input form at the bottom -->
         <div class="mt-3 pt-3 border-t border-white/10">
           <div class="relative flex items-center">
             <input id="message-input" type="text" placeholder="Type a message..." class="input w-full rounded-full pl-5 pr-28 py-3" />
             <div class="absolute right-1 flex items-center gap-1">
               <label for="file-input" title="Attach file" class="cursor-pointer p-2 rounded-full hover:bg-white/5">
-                <i data-lucide="paperclip"></i>
+                  <i data-lucide="paperclip" class="w-5 h-5"></i>
               </label>
               <input id="file-input" type="file" class="hidden" />
               <button id="send-button" class="btn btn-primary rounded-full p-2.5 inline-flex items-center justify-center">
@@ -227,63 +223,62 @@
       </section>
     </main>
 
-    <!-- Footer (optional credit) -->
-    <footer class="px-5 py-3 text-[11px] text-slate-500 border-t border-white/10 bg-gradient-to-r from-transparent via-white/5 to-transparent">
-      <span>© <span id="year"></span> MiniChat · Developed by Debasish Sarkar</span>
-    </footer>
   </div>
+
+  <!-- Custom Alert Modal -->
+  <div id="custom-alert" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm glass-card rounded-xl p-6 text-center">
+        <h3 id="alert-title" class="text-lg font-semibold text-red-400">Error</h3>
+        <p id="alert-message" class="mt-2 text-slate-300"></p>
+        <button id="alert-close" class="btn btn-primary mt-6 px-6 py-2 rounded-lg">Close</button>
+    </div>
+  </div>
+
 
   <!-- Firebase SDKs -->
   <script type="module">
-    // Firebase SDKs
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
-    import { getDatabase, ref, onValue, onChildAdded, push, set, remove, get } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js';
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js';
+    // --- Firebase SDKs (Upgraded to v11+) ---
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, orderBy, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js';
     import { UAParser } from 'https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/+esm';
 
-    // Config (kept as provided)
+    // --- Config (Use your own Firebase project config) ---
     const firebaseConfig = {
-      apiKey: 'AIzaSyCOjehIImu1mE0xXH1f4eSRxCJNGKTJnMg',
+      apiKey: 'AIzaSyCOjehIImu1mE0xXH1f4eSRxCJNGKTJnMg', // Replace with your config
       authDomain: 'loginsystem-35c58.firebaseapp.com',
-      databaseURL: 'https://loginsystem-35c58-default-rtdb.firebaseio.com',
       projectId: 'loginsystem-35c58',
       storageBucket: 'loginsystem-35c58.appspot.com',
       messagingSenderId: '874316934984',
       appId: '1:874316934984:web:bd41723ee314f52f50cd7d',
-      measurementId: 'G-4BJR3G1JB6',
     };
 
-    // Init
+    // --- Initialization ---
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const db = getFirestore(app);
     const storage = getStorage(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // State
-    let currentUser = {
-      uid: null,
-      name: 'Guest',
-      ip: '',
-      location: { lat: null, lon: null },
-      deviceDetails: {},
-    };
+    // --- State ---
+    let currentUser = { uid: null, name: 'Guest' };
     let currentRoomCode = localStorage.getItem('mc_room') || '';
     let typingTimeout;
+    let unsubscribeMessages = () => {};
+    let unsubscribeTyping = () => {};
+    let unsubscribePresence = () => {};
 
-    // DOM
+    // --- DOM Elements ---
     const screens = {
-      login: document.getElementById('login-screen'),
-      username: document.getElementById('username-prompt'),
-      room: document.getElementById('room-creation'),
-      chat: document.getElementById('chat-screen'),
+        login: document.getElementById('login-screen'),
+        username: document.getElementById('username-prompt'),
+        room: document.getElementById('room-creation'),
+        chat: document.getElementById('chat-screen'),
     };
-
     const userInfoDisplay = document.getElementById('user-info');
     const usernameDisplay = document.getElementById('username-display');
     const roomMini = document.getElementById('room-mini');
-
     const googleLoginBtn = document.getElementById('google-login-button');
     const guestBtn = document.getElementById('continue-guest-button');
     const guestUsernameInput = document.getElementById('guest-username');
@@ -293,281 +288,350 @@
     const createRoomBtn = document.getElementById('create-room-button');
     const copyRoomBtn = document.getElementById('copy-room-code');
     const roomCodeHeading = document.getElementById('room-code-heading');
-
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
     const fileInput = document.getElementById('file-input');
     const typingIndicator = document.getElementById('typing-indicator');
-
+    const userPresenceDiv = document.getElementById('user-presence');
     const leaveRoomBtn = document.getElementById('leave-room-button');
-    const leaveRoomBtnSm = document.getElementById('leave-room-button-sm');
-
-    // Utils
+    const customAlert = document.getElementById('custom-alert');
+    const alertMessage = document.getElementById('alert-message');
+    const alertCloseBtn = document.getElementById('alert-close');
+    
+    // --- Utils ---
     const showScreen = (name) => {
-      Object.values(screens).forEach((s) => s.classList.add('hidden'));
-      screens[name]?.classList.remove('hidden');
+        Object.values(screens).forEach((s) => s.classList.add('hidden'));
+        screens[name]?.classList.remove('hidden', 'h-full', 'grid');
+        screens[name]?.classList.add(...(name === 'chat' ? ['flex', 'h-full'] : ['grid', 'h-full']));
     };
 
-    const collectUserDetails = async () => {
-      try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipRes.json();
-        currentUser.ip = ipData.ip;
-      } catch (e) { console.warn('IP failed', e); }
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => (currentUser.location = { lat: pos.coords.latitude, lon: pos.coords.longitude }),
-          () => {}
-        );
-      }
-
-      const parser = new UAParser();
-      const result = parser.getResult();
-      currentUser.deviceDetails = {
-        device: result.device.model || 'Unknown',
-        os: `${result.os.name || 'Unknown'} ${result.os.version || ''}`.trim(),
-        browser: `${result.browser.name || 'Unknown'} ${result.browser.version || ''}`.trim(),
-      };
+    const showAlert = (message) => {
+        alertMessage.textContent = message;
+        customAlert.classList.remove('hidden');
     };
-
-    const saveUserDetailsToDB = () => {
-      if (!currentUser.uid) return;
-      const userRef = ref(db, `users/${currentUser.uid}`);
-      const details = {
-        name: currentUser.name,
-        ip: currentUser.ip,
-        location: currentUser.location,
-        device: currentUser.deviceDetails,
-        lastLogin: new Date().toISOString(),
-      };
-      set(userRef, details).catch((e) => console.error('Error saving user details:', e));
-    };
+    alertCloseBtn.addEventListener('click', () => customAlert.classList.add('hidden'));
 
     const generateRoomCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
+    const saveUserDetailsToDB = async () => {
+        if (!currentUser.uid) return;
+        const userRef = doc(db, `users/${currentUser.uid}`);
+        const parser = new UAParser();
+        const result = parser.getResult();
+        try {
+            await setDoc(userRef, {
+                name: currentUser.name,
+                device: {
+                    device: result.device.model || 'Unknown',
+                    os: `${result.os.name || ''} ${result.os.version || ''}`.trim(),
+                    browser: `${result.browser.name || ''} ${result.browser.version || ''}`.trim(),
+                },
+                lastLogin: serverTimestamp(),
+            }, { merge: true });
+        } catch (e) { console.error('Error saving user details:', e); }
+    };
+    
     const enterRoomFlow = (roomCode) => {
-      currentRoomCode = roomCode;
-      localStorage.setItem('mc_room', roomCode);
-      showScreen('chat');
-      roomCodeHeading.innerHTML = `Room: <span class="font-semibold text-blue-300">${roomCode}</span>`;
-      roomMini.textContent = `Room ${roomCode}`;
-      messagesDiv.innerHTML = '';
-      loadMessages();
-      listenToTyping();
-      const joinMessage = { type: 'system', text: `${currentUser.name} joined the chat.`, timestamp: new Date().toISOString() };
-      push(ref(db, `rooms/${currentRoomCode}/messages`), joinMessage);
+        currentRoomCode = roomCode;
+        localStorage.setItem('mc_room', roomCode);
+        showScreen('chat');
+        roomCodeHeading.innerHTML = `Room: <span class="font-semibold text-blue-300">${roomCode}</span>`;
+        roomMini.textContent = `Room ${roomCode}`;
+        messagesDiv.innerHTML = '';
+        
+        setupListeners(roomCode);
+        
+        // Add user to presence
+        setDoc(doc(db, `rooms/${roomCode}/presence`, currentUser.uid), { name: currentUser.name });
+
+        // Send join message
+        addDoc(collection(db, `rooms/${roomCode}/messages`), {
+            type: 'system',
+            text: `${currentUser.name} joined the chat.`,
+            timestamp: serverTimestamp()
+        });
     };
 
     const joinRoom = async () => {
-      const roomCode = (roomCodeInput.value || '').trim().toUpperCase();
-      if (!roomCode) return;
-      const roomRef = ref(db, `rooms/${roomCode}`);
-      try {
-        const snapshot = await get(roomRef);
-        if (snapshot.exists()) enterRoomFlow(roomCode);
-        else alert('Room not found. Please check the code.');
-      } catch (e) {
-        console.error('Join error:', e);
-        alert('Could not join the room. Please try again.');
-      }
+        const roomCode = (roomCodeInput.value || '').trim().toUpperCase();
+        if (!roomCode) return;
+        const roomRef = doc(db, `rooms/${roomCode}`);
+        try {
+            const roomSnap = await getDoc(roomRef);
+            if (roomSnap.exists()) {
+                enterRoomFlow(roomCode);
+            } else {
+                showAlert('Room not found. Please check the code.');
+            }
+        } catch (e) {
+            console.error('Join error:', e);
+            showAlert('Could not join the room. Please try again.');
+        }
+    };
+    
+    const leaveRoom = async () => {
+        if (!currentRoomCode) return;
+        
+        // Remove presence
+        await deleteDoc(doc(db, `rooms/${currentRoomCode}/presence`, currentUser.uid));
+        
+        // Send leave message
+        await addDoc(collection(db, `rooms/${currentRoomCode}/messages`), {
+            type: 'system',
+            text: `${currentUser.name} left the chat.`,
+            timestamp: serverTimestamp()
+        });
+
+        // Detach listeners
+        unsubscribeMessages();
+        unsubscribeTyping();
+        unsubscribePresence();
+
+        currentRoomCode = '';
+        localStorage.removeItem('mc_room');
+        messagesDiv.innerHTML = '';
+        showScreen('room');
+        roomMini.textContent = '';
+        userPresenceDiv.innerHTML = '';
     };
 
-    const createRoom = () => enterRoomFlow(generateRoomCode());
+    window.onbeforeunload = () => { if (currentRoomCode) leaveRoom(); };
+    
+    const setupListeners = (roomCode) => {
+        const messagesRef = collection(db, `rooms/${roomCode}/messages`);
+        const typingRef = collection(db, `rooms/${roomCode}/typing`);
+        const presenceRef = collection(db, `rooms/${roomCode}/presence`);
+        
+        unsubscribeMessages = onSnapshot(query(messagesRef, orderBy('timestamp')), snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === "added") {
+                    displayMessage({ id: change.doc.id, ...change.doc.data() });
+                }
+                if (change.type === "removed") {
+                    const el = document.getElementById(`msg-${change.doc.id}`);
+                    if(el) el.remove();
+                }
+            });
+        });
 
-    const leaveRoom = () => {
-      if (!currentRoomCode) return;
-      const leaveMessage = { type: 'system', text: `${currentUser.name} left the chat.`, timestamp: new Date().toISOString() };
-      push(ref(db, `rooms/${currentRoomCode}/messages`), leaveMessage);
-      currentRoomCode = '';
-      localStorage.removeItem('mc_room');
-      messagesDiv.innerHTML = '';
-      showScreen('room');
-      roomMini.textContent = '';
+        unsubscribeTyping = onSnapshot(typingRef, snapshot => {
+            const typers = snapshot.docs.map(doc => doc.data()).filter(t => t.uid !== currentUser.uid);
+            if (typers.length > 0) {
+                const names = typers.map(t => t.name).join(', ');
+                typingIndicator.innerHTML = `<span class="typing">${names} is typing <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span>`;
+            } else {
+                typingIndicator.innerHTML = '';
+            }
+        });
+        
+        unsubscribePresence = onSnapshot(presenceRef, snapshot => {
+            const users = snapshot.docs.map(doc => doc.data());
+            userPresenceDiv.innerHTML = `<span class="font-semibold">${users.length}</span>`;
+        });
     };
-
-    // Chat
-    const loadMessages = () => {
-      const messagesRef = ref(db, `rooms/${currentRoomCode}/messages`);
-      onChildAdded(messagesRef, (snapshot) => {
-        const msg = snapshot.val();
-        if (msg) displayMessage(msg);
-      });
-    };
-
+    
     const displayMessage = (message) => {
-      const isCurrentUser = message.uid === currentUser.uid;
-      const el = document.createElement('div');
+        if (!message.timestamp) return; // Don't render without timestamp
+        const isCurrentUser = message.uid === currentUser.uid;
+        const el = document.createElement('div');
+        el.id = `msg-${message.id}`;
 
-      if (message.type === 'system') {
-        el.className = 'text-center text-[11px] text-slate-400 my-1';
-        el.textContent = message.text;
-      } else {
-        const alignment = isCurrentUser ? 'ml-auto' : 'mr-auto';
-        const nameLine = !isCurrentUser ? `<p class="text-[11px] text-blue-300 mb-1">${message.username || 'User'}</p>` : '';
-        const bubbleGrad = isCurrentUser ? 'bg-gradient-to-br from-blue-600 to-indigo-600' : 'bg-white/5';
-        const ridges = isCurrentUser ? 'rounded-br-none' : 'rounded-bl-none';
+        if (message.type === 'system') {
+            el.className = 'text-center text-[11px] text-slate-400 my-1';
+            el.textContent = message.text;
+        } else {
+            const time = message.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
+            const fullTimestamp = message.timestamp?.toDate().toLocaleString() || '';
+            
+            el.className = `message-wrapper flex items-end gap-2 max-w-[85%] md:max-w-[70%] ${isCurrentUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`;
 
-        let fileHTML = '';
-        if (message.fileURL) {
-          const label = message.fileName || 'View File';
-          fileHTML = `
-            <a href="${message.fileURL}" target="_blank" class="block mt-2 p-2 bg-black/20 rounded-lg hover:bg-black/30 transition-colors">
-              <div class="flex items-center gap-2">
-                <i data-lucide="file" class="w-4 h-4"></i>
-                <span class="text-xs truncate">${label}</span>
-              </div>
-            </a>`;
+            let deleteBtnHTML = '';
+            if (isCurrentUser) {
+                deleteBtnHTML = `<button data-id="${message.id}" data-file="${message.fileURL || ''}" class="delete-msg-btn p-1.5 rounded-full text-slate-400 hover:bg-red-500/20 hover:text-red-400">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>`;
+            }
+
+            el.innerHTML = `
+                <div class="bubble flex-1 px-4 py-2.5 rounded-2xl ${isCurrentUser ? 'bg-gradient-to-br from-blue-600 to-indigo-600 rounded-br-none' : 'bg-white/5 rounded-bl-none'} ring-1 ring-white/10">
+                    ${!isCurrentUser ? `<p class="text-[11px] text-blue-300 mb-1">${message.username || 'User'}</p>` : ''}
+                    ${message.text ? `<p class="text-sm ${isCurrentUser ? 'text-white' : 'text-slate-200'} break-words">${message.text}</p>` : ''}
+                    ${message.fileURL ? `
+                        <a href="${message.fileURL}" target="_blank" class="block mt-2 p-2 bg-black/20 rounded-lg hover:bg-black/30 transition-colors">
+                            <div class="flex items-center gap-2"><i data-lucide="file" class="w-4 h-4"></i><span class="text-xs truncate">${message.fileName || 'View File'}</span></div>
+                        </a>` : ''}
+                </div>
+                ${deleteBtnHTML}
+                <p class="text-[10px] text-slate-500 self-start pt-1" title="${fullTimestamp}">${time}</p>
+            `;
         }
 
-        el.className = `flex flex-col max-w-[85%] md:max-w-[70%] ${alignment}`;
-        el.innerHTML = `
-          ${nameLine}
-          <div class="bubble px-4 py-2.5 rounded-2xl ${bubbleGrad} ${ridges} ring-1 ring-white/10">
-            ${message.text ? `<p class="text-sm ${isCurrentUser ? 'text-white' : 'text-slate-200'} break-words">${message.text}</p>` : ''}
-            ${fileHTML}
-          </div>
-          <p class="text-[10px] text-slate-400 mt-1 ${isCurrentUser ? 'text-right' : 'text-left'}">${new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-        `;
-      }
-
-      messagesDiv.appendChild(el);
-      lucide.createIcons();
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        messagesDiv.appendChild(el);
+        lucide.createIcons();
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
     };
-
-    const sendMessage = () => {
-      const text = (messageInput.value || '').trim();
-      if (!text || !currentRoomCode) return;
-      const message = { uid: currentUser.uid, username: currentUser.name, text, timestamp: new Date().toISOString(), type: 'user' };
-      push(ref(db, `rooms/${currentRoomCode}/messages`), message);
-      messageInput.value = '';
-      remove(ref(db, `rooms/${currentRoomCode}/typing/${currentUser.uid}`));
+    
+    const sendMessage = async () => {
+        const text = (messageInput.value || '').trim();
+        if (!text || !currentRoomCode) return;
+        messageInput.value = '';
+        try {
+            await addDoc(collection(db, `rooms/${currentRoomCode}/messages`), {
+                uid: currentUser.uid,
+                username: currentUser.name,
+                text,
+                timestamp: serverTimestamp(),
+                type: 'user'
+            });
+            await deleteDoc(doc(db, `rooms/${currentRoomCode}/typing`, currentUser.uid));
+        } catch (e) {
+            console.error("Message send failed:", e);
+            showAlert("Failed to send message.");
+        }
     };
-
+    
     const uploadFile = async (file) => {
-      if (!file || !currentRoomCode) return;
-      if (file.size > 25 * 1024 * 1024) { // 25 MB guard
-        alert('File too large. Please keep it under 25 MB.');
-        return;
-      }
-      const path = `rooms/${currentRoomCode}/${Date.now()}_${file.name}`;
-      const refInStorage = storageRef(storage, path);
-      try {
-        const snapshot = await uploadBytes(refInStorage, file);
-        const url = await getDownloadURL(snapshot.ref);
-        const message = { uid: currentUser.uid, username: currentUser.name, text: '', fileURL: url, fileName: file.name, timestamp: new Date().toISOString(), type: 'user' };
-        push(ref(db, `rooms/${currentRoomCode}/messages`), message);
-      } catch (e) {
-        console.error('Upload failed:', e);
-        alert('File upload failed. Please try again.');
-      }
+        if (!file || !currentRoomCode) return;
+        if (file.size > 25 * 1024 * 1024) {
+            showAlert('File too large. Max size is 25 MB.');
+            return;
+        }
+        const filePath = `rooms/${currentRoomCode}/${Date.now()}_${file.name}`;
+        const fileRef = storageRef(storage, filePath);
+        try {
+            const snapshot = await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(snapshot.ref);
+            await addDoc(collection(db, `rooms/${currentRoomCode}/messages`), {
+                uid: currentUser.uid,
+                username: currentUser.name,
+                fileURL: url,
+                fileName: file.name,
+                timestamp: serverTimestamp(),
+                type: 'user'
+            });
+        } catch (e) {
+            console.error('Upload failed:', e);
+            showAlert('File upload failed. Please try again.');
+        }
     };
 
-    const listenToTyping = () => {
-      const typingRef = ref(db, `rooms/${currentRoomCode}/typing`);
-      onValue(typingRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) { typingIndicator.innerHTML = ''; return; }
-        const others = Object.values(data).filter((t) => t.uid !== currentUser.uid);
-        if (others.length > 0) {
-          const names = others.map((t) => t.name).join(', ');
-          typingIndicator.innerHTML = `<span class="typing">${names} is typing <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span>`;
-        } else typingIndicator.innerHTML = '';
-      });
+    const handleDeleteMessage = async (e) => {
+        const button = e.target.closest('.delete-msg-btn');
+        if (!button) return;
+        
+        const messageId = button.dataset.id;
+        const fileURL = button.dataset.file;
+        
+        if (fileURL) {
+            try {
+                const fileRef = storageRef(storage, fileURL);
+                await deleteObject(fileRef);
+            } catch (error) {
+                // Ignore errors if file doesn't exist (e.g., already deleted)
+                if (error.code !== 'storage/object-not-found') {
+                    console.error("Failed to delete file from storage:", error);
+                    showAlert("Could not delete the associated file.");
+                    return;
+                }
+            }
+        }
+        await deleteDoc(doc(db, `rooms/${currentRoomCode}/messages`, messageId));
     };
-
-    // Events
+    messagesDiv.addEventListener('click', handleDeleteMessage);
+    
+    // --- Event Listeners ---
     googleLoginBtn.addEventListener('click', async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        currentUser.uid = user.uid;
-        currentUser.name = user.displayName || 'User';
-        usernameDisplay.textContent = currentUser.name;
-        userInfoDisplay.classList.remove('hidden');
-        saveUserDetailsToDB();
-        showScreen('room');
-      } catch (e) {
-        console.error('Google Sign-In Error:', e);
-        alert('Failed to sign in with Google.');
-      }
+        try {
+            const result = await signInWithPopup(auth, provider);
+            // Auth state change will handle the rest
+        } catch (e) {
+            console.error('Google Sign-In Error:', e);
+            showAlert('Failed to sign in with Google.');
+        }
     });
 
     guestBtn.addEventListener('click', () => showScreen('username'));
 
     submitUsernameBtn.addEventListener('click', () => {
-      const name = (guestUsernameInput.value || '').trim();
-      if (!name) return;
-      currentUser.uid = 'guest_' + Date.now();
-      currentUser.name = name;
-      usernameDisplay.textContent = currentUser.name;
-      userInfoDisplay.classList.remove('hidden');
-      saveUserDetailsToDB();
-      showScreen('room');
+        const name = (guestUsernameInput.value || '').trim();
+        if (!name) return;
+        currentUser = { uid: 'guest_' + Date.now(), name };
+        usernameDisplay.textContent = currentUser.name;
+        userInfoDisplay.classList.remove('hidden');
+        saveUserDetailsToDB();
+        showScreen('room');
     });
 
-    roomCodeInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') joinRoom(); });
-
+    roomCodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') joinRoom(); });
     joinRoomBtn.addEventListener('click', joinRoom);
-    createRoomBtn.addEventListener('click', createRoom);
-
-    const wireLeave = () => leaveRoom();
-    leaveRoomBtn?.addEventListener('click', wireLeave);
-    leaveRoomBtnSm?.addEventListener('click', wireLeave);
-
+    createRoomBtn.addEventListener('click', () => enterRoomFlow(generateRoomCode()));
+    leaveRoomBtn.addEventListener('click', leaveRoom);
+    
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-    messageInput.addEventListener('input', () => {
-      if (!currentRoomCode || !currentUser.uid) return;
-      const tRef = ref(db, `rooms/${currentRoomCode}/typing/${currentUser.uid}`);
-      if (messageInput.value) {
-        set(tRef, { name: currentUser.name, uid: currentUser.uid });
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => remove(tRef), 3000);
-      } else remove(tRef);
+    messageInput.addEventListener('input', async () => {
+        if (!currentRoomCode || !currentUser.uid) return;
+        const tRef = doc(db, `rooms/${currentRoomCode}/typing`, currentUser.uid);
+        if (messageInput.value) {
+            await setDoc(tRef, { name: currentUser.name, uid: currentUser.uid });
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => deleteDoc(tRef), 3000);
+        } else {
+            await deleteDoc(tRef);
+        }
     });
 
     fileInput.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      if (file) uploadFile(file);
-      e.target.value = '';
+        const file = e.target.files?.[0];
+        if (file) uploadFile(file);
+        e.target.value = '';
     });
 
     copyRoomBtn.addEventListener('click', async () => {
-      if (!currentRoomCode) return;
-      try {
-        // Use the 'copy' command for broader compatibility in iFrames
-        const textArea = document.createElement("textarea");
-        textArea.value = currentRoomCode;
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-
-        copyRoomBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
-        lucide.createIcons();
-        setTimeout(() => { copyRoomBtn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>'; lucide.createIcons(); }, 1200);
-      } catch(err) {
-          console.error('Failed to copy room code: ', err);
-      }
+        if (!currentRoomCode) return;
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = currentRoomCode;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            copyRoomBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
+            lucide.createIcons();
+            setTimeout(() => { copyRoomBtn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>'; lucide.createIcons(); }, 1200);
+        } catch(err) {
+            console.error('Failed to copy room code: ', err);
+        }
     });
 
-    // Init
-    const init = async () => {
-      document.getElementById('year').textContent = new Date().getFullYear();
-      lucide.createIcons();
-      await collectUserDetails();
-      if (currentRoomCode) {
-        // If user refreshes while in a room, keep them at room screen to let them rejoin easily
-        showScreen('room');
-        roomCodeInput.value = currentRoomCode;
-      } else {
-        showScreen('login');
-      }
+    // --- App Initialization ---
+    const init = () => {
+        lucide.createIcons();
+        onAuthStateChanged(auth, (user) => {
+            if (user) { // User is signed in with Google
+                currentUser = { uid: user.uid, name: user.displayName || 'User' };
+                usernameDisplay.textContent = currentUser.name;
+                userInfoDisplay.classList.remove('hidden');
+                saveUserDetailsToDB();
+                if(screens.login.checkVisibility()) showScreen('room');
+            } else { // User is not signed in
+                if (!currentUser.uid?.startsWith('guest_')) { // Don't reset if they are a guest
+                    currentUser = { uid: null, name: 'Guest' };
+                    userInfoDisplay.classList.add('hidden');
+                    if (!currentRoomCode) showScreen('login');
+                }
+            }
+        });
+        
+        if (currentRoomCode) {
+            showScreen('room');
+            roomCodeInput.value = currentRoomCode;
+        } else {
+            showScreen('login');
+        }
     };
 
     window.onload = init;
